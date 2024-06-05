@@ -7,6 +7,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\InitialFamilyDetails;
+use App\Models\FamilyDetails;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Validator;
@@ -88,11 +89,49 @@ class UserController extends BaseController
         $initfamily->district = $request->district;
         $initfamily->city = $request->city;
         $initfamily->family_Id = $request->family_Id;
-        $initfamily->family_photo = $request->family_photo;
+        if($request->hasfile('family_photo')){
+            $img = $request->file('family_photo');
+            $imgName = time().'_'.uniqid().'_'.$img ->getClientOriginalName();
+            $saveImage =  $img->move(public_path('uploads/family_pictures'), $imgName);
+            $initfamily->family_photo =  $imgName;
+        }
         $initfamily->native_address = $request->native_address;
         $initfamily->created_at = now();
         $initfamily->timestamps = false; 
         $initfamily->save();
         return $this->sendResponse($initfamily,'Initial family details added successfully');
+    }
+
+    //Get all initial family details
+    public function getAllInitFamilyDetails(Request $request):JsonResponse
+    {
+        $initfamilydetails = InitialFamilyDetails::all();
+        if(is_null($initfamilydetails)){
+            return $this->sendError('Family Details Not Found');
+        }
+        return $this->sendResponse($initfamilydetails, 'Successfully get all family details.');
+    }
+
+    //Delete init family details
+    public function deleteInitFamilyDetails($id):JsonResponse
+    {
+        $initfamilydetails = InitialFamilyDetails::where('family_id', $id)->first();
+        if(is_null($initfamilydetails)){
+            return $this->sendError('Init Family Details Not Found');
+        }
+        else{
+            $familydetails=FamilyDetails::where('family_id', $id)->get();
+            if(count($familydetails)==0){
+                $initfamilydetails->delete(); 
+                return $this->sendResponse([],'Family Details Not Found , init family details Successfully delete.');
+            }
+            else{
+                foreach($familydetails as $familyd){
+                    $familyd->delete();
+                }
+                $initfamilydetails->delete(); 
+            }
+        }
+        return $this->sendResponse([], 'Successfully delete init family details.');
     }
 }
