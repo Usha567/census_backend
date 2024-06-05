@@ -20,7 +20,9 @@ class AgentController extends BaseController
      */
     public function index()
     {
-        //
+        //Get all data
+        $users = User::all();
+        return $this->sendResponse($users, 'Successfully get all data');
     }
 
     /**
@@ -30,7 +32,7 @@ class AgentController extends BaseController
      */
     public function create()
     {
-        //
+         
     }
 
     /**
@@ -41,15 +43,16 @@ class AgentController extends BaseController
      */
     public function store(Request $request)
     {
-        //Add user
-        $validator = Validator::make($request->all(),[
-            'name'=>'required',
-            'mobile'=>'required',
-            'email'=>'required',
-            'state'=>'required',
-            'district'=>'required',
-            'city'=>'required',
-            'role_id'=>'required'
+       //store data
+       echo 'adding data...';
+       $validator = Validator::make($request->all(),[
+        'name'=>'required',
+        'mobile'=>'required|numeric|digits:10|unique:users,mobile',
+        'email'=>'required|email|unique:users,email',
+        'state'=>'required',
+        'district'=>'required',
+        'city'=>'required',
+        'role_id'=>'required'
         ]);
         if($validator->fails()){
             return $this->sendError('Validation Error', $validator->errors());
@@ -76,7 +79,11 @@ class AgentController extends BaseController
      */
     public function show($id)
     {
-        //
+        $user = User::where('id', $id)->first();
+        if(is_null($user)){
+            return $this->sendError('User Not Found',[]);
+        }
+        return $this->sendResponse($user, 'Successfully get all data');
     }
 
     /**
@@ -99,10 +106,11 @@ class AgentController extends BaseController
      */
     public function update(Request $request, $id)
     {
+        echo 'updating data...';
         $validator = Validator::make($request->all(),[
             'name'=>'required',
-            'mobile'=>'required',
-            'email'=>'required',
+            'mobile'=>'required|numeric|digits:10|unique:users,mobile',
+            'email'=>'required|email|unique:users,email',
             'state'=>'required',
             'district'=>'required',
             'city'=>'required',
@@ -135,6 +143,12 @@ class AgentController extends BaseController
      */
     public function destroy($id)
     {
-        //
+        $user = User::where('id', $id)->first();
+        if(is_null($user)){
+            return $this->sendError('User Not Found');
+        }else{
+            $user->delete();
+        }
+        return $this->sendResponse([],'User deleted successfully');
     }
 }

@@ -40,11 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        // 'api' => [
-        //     'driver' => 'jwt',
-        //     'provider' => 'users',
-        //     'hash' => false,
-        // ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => false,
+        ],
         'operator' => [
             'driver' => 'session',
             'provider' => 'operators',

@@ -13,7 +13,7 @@
         "haruncpi/laravel-id-generator": "^1.1",
         "ichtrojan/laravel-otp": "^1.4",
         "laravel/framework": "^9.19",
-        "laravel/sanctum": "^3.2",
+        "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.7",
         "laravelcollective/html": "^6.4",
         "simplesoftwareio/simple-qrcode": "^4.2",
