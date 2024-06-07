@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\InitialFamilyDetails;
 use App\Models\FamilyDetails;
+use App\Models\State;
+use App\Models\District;
+use App\Models\City;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Validator;
@@ -89,6 +92,15 @@ class UserController extends BaseController
         $initfamily->district = $request->district;
         $initfamily->city = $request->city;
         $initfamily->family_Id = $request->family_Id;
+        if($request->other_state){
+            $initfamily->other_state = $request->other_state;
+        }
+        if($request->other_district){
+            $initfamily->other_district = $request->other_district;
+        }
+        if($request->other_city){
+            $initfamily->other_city = $request->other_city;
+        }
         if($request->hasfile('family_photo')){
             $img = $request->file('family_photo');
             $imgName = time().'_'.uniqid().'_'.$img ->getClientOriginalName();
@@ -105,18 +117,29 @@ class UserController extends BaseController
     //Get all initial family details
     public function getAllInitFamilyDetails(Request $request):JsonResponse
     {
-        $initfamilydetails = InitialFamilyDetails::all();
-        if(is_null($initfamilydetails)){
+        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails')->get();
+        if(count($initfamilydetails)==0){
             return $this->sendError('Family Details Not Found');
         }
         return $this->sendResponse($initfamilydetails, 'Successfully get all family details.');
     }
 
+    //Get all initial family details
+    public function getInitFamilyDetailsById(Request $request, $id):JsonResponse
+    {
+        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails')->where('id', $id)->get();
+        if(count($initfamilydetails)==0){
+            return $this->sendError('Family Details Not Found');
+        }
+        return $this->sendResponse($initfamilydetails, 'Successfully get all family details.');
+    }
+
+
     //Delete init family details
     public function deleteInitFamilyDetails($id):JsonResponse
     {
         $initfamilydetails = InitialFamilyDetails::where('family_id', $id)->first();
-        if(is_null($initfamilydetails)){
+        if(count($initfamilydetails)==0){
             return $this->sendError('Init Family Details Not Found');
         }
         else{
@@ -133,5 +156,43 @@ class UserController extends BaseController
             }
         }
         return $this->sendResponse([], 'Successfully delete init family details.');
+    }
+
+    //get all city
+    public function getAllStates():JsonResponse
+    {
+        $states = State::all();
+        return $this->sendResponse($states, 'Successfully get all states.');
+    }
+
+    //get district by state
+    public function getDistrictByState($id):jsonResponse
+    {
+        if($id==7){
+            $dist = District::where('state', $id)->get();
+        }
+        else{
+            $dist = District::where('district_name','=','Other District')->get();
+        }
+        return $this->sendResponse($dist, 'Successfully get all districts.');
+    }
+
+    //get city by district
+    public function getCityByDistrict($id):jsonResponse
+    {
+        if($id==125){
+            $city = City::where('district', $id)->get();
+        }
+        else{
+            $city = City::where('district', $id)->first();
+            if(is_null($city)){
+                $dist = new City;
+                $dist->district=$id;
+                $dist->city_name='Other City';
+                $dist->save();
+                $city = City::where('district', $id)->get();
+            }
+        }
+        return $this->sendResponse($city, 'Successfully get all cities.');
     }
 }

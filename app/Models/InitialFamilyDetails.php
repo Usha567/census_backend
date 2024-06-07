@@ -19,4 +19,7 @@ class InitialFamilyDetails extends Model
         'created_at',
         'updated_at'
     ];
+    public function familymemberdetails(){
+        return $this->hasMany(FamilyDetails::class, 'family_id', 'id');
+    } 
 }
