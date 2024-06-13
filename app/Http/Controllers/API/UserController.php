@@ -80,7 +80,7 @@ class UserController extends BaseController
             'state'=>'required',
             'district'=>'required',
             'city'=>'required',
-            'family_Id'=>'required|unique:initial_family_details,family_Id',
+            'family_Id'=>'required|unique:initial_family_details,fk_family_id',
             'family_photo'=>'sometimes|image|mimes:jpeg,png,jpg,gif',
             'native_address'=>'required'
         ]);
@@ -91,7 +91,7 @@ class UserController extends BaseController
         $initfamily->state = $request->state;
         $initfamily->district = $request->district;
         $initfamily->city = $request->city;
-        $initfamily->family_Id = $request->family_Id;
+        $initfamily->fk_family_id = $request->family_Id;
         if($request->other_state){
             $initfamily->other_state = $request->other_state;
         }

@@ -49,15 +49,15 @@ class FamilyDetailController extends BaseController
             'mother_name'=>'sometimes',
             'father_name'=>'sometimes',
             'father_surname'=>'sometimes',
-            'age'=>'required',
-            'dob'=>'required|date_format:Y-m-d',
+            'age'=>'sometimes',
+            'dob'=>'sometimes|date_format:Y-m-d',
             'mobile_number'=>[
-                'required',
+                'sometimes',
                 'numeric',
                 'digits:10',
                 new UniqueMobileAcrossFamilies($request->family_id),
             ],
-            'relation'=>'required',
+            'relation'=>'sometimes',
             'qualification'=>'sometimes',
             'marriage_type'=>'sometimes',
             'marital_status'=>'sometimes',
@@ -67,7 +67,7 @@ class FamilyDetailController extends BaseController
             'sons'=>'sometimes',
             'daughters'=>'sometimes',
             'occupation'=>'sometimes',
-            'self_image'=>'sometimes|image|mimes:jpeg,png,jpg,gif',
+            'self_image'=>'sometimes',
         ]);
         if($validator->fails()){
             return $this->sendError('Validation Error', $validator->errors());

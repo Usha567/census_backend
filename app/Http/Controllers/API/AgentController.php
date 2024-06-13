@@ -21,7 +21,7 @@ class AgentController extends BaseController
     public function index()
     {
         //Get all data
-        $users = User::all();
+        $users = User::with('state_details', 'district_details','city_details')->get();
         return $this->sendResponse($users, 'Successfully get all data');
     }
 
@@ -65,6 +65,15 @@ class AgentController extends BaseController
         $user->state = $request->state;
         $user->district = $request->district;
         $user->city = $request->city;
+        if($request->other_state){
+            $user->other_state = $request->other_state;
+        }
+        if($request->other_district){
+            $user->other_district = $request->other_district;
+        }
+        if($request->other_city){
+            $user->other_city = $request->other_city;
+        }
         $user->created_at = now();
         $user->timestamps = false; 
         $user->save();
@@ -79,7 +88,7 @@ class AgentController extends BaseController
      */
     public function show($id)
     {
-        $user = User::where('id', $id)->first();
+        $user = User::with('state_details', 'district_details','city_details')->where('id', $id)->first();
         if(is_null($user)){
             return $this->sendError('User Not Found',[]);
         }
@@ -130,6 +139,15 @@ class AgentController extends BaseController
         $user->state = $request->state;
         $user->district = $request->district;
         $user->city = $request->city;
+        if($request->other_state){
+            $user->other_state = $request->other_state;
+        }
+        if($request->other_district){
+            $user->other_district = $request->other_district;
+        }
+        if($request->other_city){
+            $user->other_city = $request->other_city;
+        }
         $user->updated_at = now();
         $user->save();
         return $this->sendResponse($user,'User updated successfully');
