@@ -8,6 +8,8 @@ use App\Models\FamilyDetails;
 use Validator;
 use Illuminate\Validation\Rule;
 use App\Rules\UniqueMobileAcrossFamilies;
+use App\Models\InitialFamilyDetails;
+use App\Models\Suggestions;
 
 class FamilyDetailController extends BaseController
 {
@@ -68,6 +70,9 @@ class FamilyDetailController extends BaseController
             'daughters'=>'sometimes',
             'occupation'=>'sometimes',
             'self_image'=>'sometimes',
+            'other_qualification'=>'sometimes',
+            'occupation_type'=>'sometimes',
+            'cast_certificate'=>'sometimes',
         ]);
         if($validator->fails()){
             return $this->sendError('Validation Error', $validator->errors());
@@ -105,6 +110,7 @@ class FamilyDetailController extends BaseController
         $familydetails->mobile_number = $request->mobile_number;
         $familydetails->relation = $request->relation;
         $familydetails->qualification = $request->qualification;
+        $familydetails->other_qualification = $request->other_qualification;
         $familydetails->marriage_type = $request->marriage_type;
         $familydetails->marital_status = $request->marital_status;
         $familydetails->marriage_stage = $request->marriage_stage;
@@ -113,6 +119,8 @@ class FamilyDetailController extends BaseController
         $familydetails->sons = $request->sons;
         $familydetails->daughters = $request->daughters;
         $familydetails->occupation = $request->occupation;
+        $familydetails->occupation_type = $request->occupation_type;
+        $familydetails->cast_certificate = $request->cast_certificate;
         if($request->hasfile('self_image')){
             $img = $request->file('self_image');
             $imgName = time().'_'.uniqid().'_'.$img ->getClientOriginalName();
@@ -146,6 +154,147 @@ class FamilyDetailController extends BaseController
         }    
         return $this->sendResponse($familydetails,'Get the family member details successfully');
     }
+
+    /**search family details* */
+    public function searchFamilyDetails(Request $request){
+        if($request->flag=='nosearchparam'){
+            return $this->sendResponse([],'Search params is empty , No data found.');
+        }else{
+            $query = FamilyDetails::query()->with('initfamilydetails', 'initfamilydetails.state_details', 'initfamilydetails.district_details','initfamilydetails.city_details');
+            if($request->name!=''){
+               $query->where('name','like' ,'%'.$request->name.'%');
+            }
+            if($request->mobile!=''){
+                $query->where('mobile_number','like' ,'%'.$request->mobile.'%');
+            }
+            if($request->agerange!=''){
+                $ageRange = explode('-', $request->agerange);
+                if (count($ageRange) == 2 && is_numeric($ageRange[0]) && is_numeric($ageRange[1])) {
+                    $query->whereBetween('age', [$ageRange[0], $ageRange[1]]);
+                }
+            }
+            if($request->state!=''){
+                if($request->state==37){
+                    if($request->state==37 && $request->other_state !=''){
+                        $initFalimyDetails = InitialFamilyDetails::where('state', $request->state)->where('other_state', $request->other_state)->get();
+                        if(is_null($initFalimyDetails)){
+                            return $this->sendResponse([], 'No initial family details found.');
+                        }
+                        $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                        $query->whereIn('family_id', $familyIds);
+                    }
+                    else{
+                        $initFalimyDetails = InitialFamilyDetails::where('state', $request->state)->get();
+                        if(is_null($initFalimyDetails)){
+                            return $this->sendResponse([], 'No initial family details found.');
+                        }
+                        $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                        $query->whereIn('family_id', $familyIds);
+                    }
+                }else{
+                    $initFalimyDetails = InitialFamilyDetails::where('state', $request->state)->get();
+                    if(is_null($initFalimyDetails)){
+                        return $this->sendResponse([], 'No initial family details found.');
+                    }
+                    // Prepare an array of family_ids to filter FamilyDetails
+                    $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                    $query->whereIn('family_id', $familyIds);
+                }
+            }
+            if($request->district!=''){
+                if($request->district==770){
+                    if($request->district==770 && $request->other_dist!=''){
+                        $initFalimyDetails = InitialFamilyDetails::where('district', $request->district)->where('other_district', $request->other_dist)->get();
+                        if(is_null($initFalimyDetails)){
+                            return $this->sendResponse([], 'No initial family details found.');
+                        }
+                        $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                        $query->whereIn('family_id', $familyIds);
+                    }
+                    else{
+                        $initFalimyDetails = InitialFamilyDetails::where('district', $request->district)->get();
+                        if(is_null($initFalimyDetails)){
+                            return $this->sendResponse([], 'No initial family details found.');
+                        }
+                        $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                        $query->whereIn('family_id', $familyIds);
+                    }
+                }
+                else{
+                    $initFalimyDetails = InitialFamilyDetails::where('district', $request->district)->get();
+                    if(is_null($initFalimyDetails)){
+                        return $this->sendResponse([], 'No initial family details found.');
+                    }
+                    // Prepare an array of family_ids to filter FamilyDetails
+                    $familyIds = $initFalimyDetails->pluck('fk_family_id');
+                    $query->whereIn('family_id', $familyIds);
+                }
+            }
+            if($request->qualification!=''){
+                $query->where('qualification','like' ,'%'.$request->qualification.'%');
+            }
+            if($request->maritalstatus!=''){
+                $query->where('marital_status','like' ,'%'.$request->maritalstatus.'%');
+            }
+            if($request->occupation!=''){
+                $query->where('occupation','like' ,'%'.$request->occupation.'%');
+            }
+            $familydetails = $query->get();
+            if($familydetails->isEmpty()){
+                return $this->sendResponse([], 'No family details found.');
+            }
+            return $this->sendResponse($familydetails,'Family member details retrieved successfully.');
+        }
+    }
+
+    /*Add suggestion* */
+    public function addSuggestion(){
+        //Add family details
+        $validator = Validator::make($request->all(),[
+            'family_id'=>'required',
+            'name'=>'required',
+            'mobile_number'=>'required',
+            'suggestion'=>'required'
+        ]);
+        if($validator->fails()){
+            return $this->sendError('Validation Error', $validator->errors());
+        }
+        #check same family id & memberid -this is for husband
+        $suggestion = new Suggestions;                        
+        $suggestion->family_id = $request->family_id;
+        $suggestion->name = $request->name;
+        $suggestion->mobile_number = $request->mobile_number;
+        $suggestion->suggestion = $request->suggestion;
+        $suggestion->created_at = now();
+        $suggestion->timestamps = false; 
+        $suggestion->save();
+        return $this->sendResponse($suggestion,' Suggestion submitted successfully.');
+    }
+
+    /*get all suggestion*/
+    public function getAllSuggestion(){
+        $suggetions = Suggestions::all();
+        if(is_null($suggetions)){
+            return $this->sendResponse($suggetions,'No Suggestion Found');
+        }
+        return $this->sendResponse($suggetions,'Successfully fetched all suggestion');
+    }
+    public function getSuggestionById($id){
+        $suggetion = Suggestions::where('id', $id)->get();
+        if(is_null($suggetion)){
+            return $this->sendResponse($suggetion,'No Suggestion Found');
+        }
+        return $this->sendResponse($suggetion,'Successfully fetched the suggestion');
+    }
+    public function deleteSuggestion($id){
+        $suggetion = Suggestions::where('id', $id)->get();
+        if(is_null($suggetion)){
+            return $this->sendResponse($suggetion,'No Suggestion Found');
+        }
+        $suggetion->delete();
+        return $this->sendResponse([],'Successfully delete the suggestion');
+    }
+
 
     /**
      * Show the form for editing the specified resource.

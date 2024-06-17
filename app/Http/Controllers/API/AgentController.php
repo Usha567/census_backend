@@ -95,6 +95,26 @@ class AgentController extends BaseController
         return $this->sendResponse($user, 'Successfully get all data');
     }
 
+    /**search agents */
+    public function searchAgents(Request $request){
+        //Get all data
+        $users = User::query()->with('state_details', 'district_details','city_details');
+        if($request->name !=''){
+            $users->where('name', 'like','%'.$request->name.'%');
+        }
+        if($request->mobile !=''){
+            $users->where('mobile', 'like','%'.$request->mobile.'%');
+        }
+        if($request->email !=''){
+            $users->where('email', 'like','%'.$request->email.'%');
+        }
+        $users = $users->get();
+        if($users->isEmpty()){
+            return $this->sendResponse([], 'No users details found.');
+        }
+        return $this->sendResponse($users,'Users details retrieved successfully.');
+    }
+
     /**
      * Show the form for editing the specified resource.
      *

@@ -32,4 +32,7 @@ class FamilyDetails extends Model
         'occupation',
         'self_image'
     ];
+    public function initfamilydetails(){
+        return $this->hasMany(InitialFamilyDetails::class, 'fk_family_id', 'family_id');
+    } 
 }

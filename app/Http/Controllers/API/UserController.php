@@ -117,7 +117,7 @@ class UserController extends BaseController
     //Get all initial family details
     public function getAllInitFamilyDetails(Request $request):JsonResponse
     {
-        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails')->get();
+        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails', 'state_details','district_details','city_details')->get();
         if(count($initfamilydetails)==0){
             return $this->sendError('Family Details Not Found');
         }
@@ -127,13 +127,12 @@ class UserController extends BaseController
     //Get all initial family details
     public function getInitFamilyDetailsById(Request $request, $id):JsonResponse
     {
-        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails')->where('id', $id)->get();
+        $initfamilydetails = InitialFamilyDetails::with('familymemberdetails')->where('fk_family_id', $id)->get();
         if(count($initfamilydetails)==0){
             return $this->sendError('Family Details Not Found');
         }
         return $this->sendResponse($initfamilydetails, 'Successfully get all family details.');
     }
-
 
     //Delete init family details
     public function deleteInitFamilyDetails($id):JsonResponse
@@ -158,13 +157,18 @@ class UserController extends BaseController
         return $this->sendResponse([], 'Successfully delete init family details.');
     }
 
-    //get all city
+    //get all states
     public function getAllStates():JsonResponse
     {
         $states = State::all();
         return $this->sendResponse($states, 'Successfully get all states.');
     }
-
+    //get all Districts
+    public function getAllDistricts():JsonResponse
+    {
+        $districts = District::all();
+        return $this->sendResponse($districts, 'Successfully get all districts.');
+    }
     //get district by state
     public function getDistrictByState($id):jsonResponse
     {
@@ -195,4 +199,25 @@ class UserController extends BaseController
         }
         return $this->sendResponse($city, 'Successfully get all cities.');
     }
+
+    //get all other state name if state is other type
+    public function getAllOtherStates($id)
+    {
+        $other_states = InitialFamilyDetails::where('state',$id)->get();
+        if(count($other_states)==0){
+            return $this->sendResponse([], 'No other states found');
+        }
+        return $this->sendResponse($other_states, 'Successfully get all other states.');
+    }
+
+    //get all other districts if district is other type
+    public function getAllOtherDistricts($id)
+    {
+        $other_dists = InitialFamilyDetails::where('district',$id)->get();
+        if(count($other_dists)==0){
+            return $this->sendResponse([], 'No other districts found');
+        }
+        return $this->sendResponse($other_dists, 'Successfully get all other districts.');
+    }
+    
 }
